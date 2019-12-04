@@ -1,6 +1,6 @@
 module Day4
 
-export part1, part2, part2b
+export part1, part2, part2b, part2c, part1d
 export check, rules1, rules2
 
 # Variable naming convention
@@ -54,11 +54,21 @@ check(v, rules) = count_passwords(v, v, rules) > 0
 # alternative implementation
 
 # uses generator comprehension... slower than for-loop though.
-count_passwords2(i, j, rules) = 
+count_passwords_b(i, j, rules) = 
     count(true 
         for v in i:j 
         if all(f(reverse(digits(v))) for f in rules))
     
-part2b() = count_passwords2(138307, 654504, rules2) 
+part2b() = count_passwords_b(138307, 654504, rules2) 
+
+count_passwords_c(i, j, rules) = 
+    count(v -> all(f(reverse(digits(v))) for f in rules), i:j)
+    
+part2c() = count_passwords_c(138307, 654504, rules2) 
+
+# d) Michael K. Borregaard
+ispass(dif) = any(==(0), dif) && all(>=(0), dif)
+ispassword(num) = ispass(diff(reverse(digits(num))))
+part1d() = count(ispassword, 138307:654504)
 
 end # module
