@@ -1,23 +1,11 @@
 module Day3
 
-export parse_line, make_board, solve, main, visualize
-
-using Test
-using SparseArrays
-using Plots
-using UnicodePlots
+export part1, part2
+export closest_point, shortest_distance
 
 struct Op
     direction::Symbol
     distance::Int
-end
-
-mutable struct Board
-    M::SparseMatrixCSC{Int,Int}
-    curr_x::Int
-    curr_y::Int
-    orig_x::Int
-    orig_y::Int
 end
 
 "Parse a single operation e.g. R80 => Op(:R, 80)"
@@ -29,104 +17,66 @@ parse_line(str) = parse_command.(split(str, ","))
 "Parse a file into an array of line instructions"
 parse_file(path) = parse_line.(readlines(path))
 
-function make_board(x = 50_000, y = 50_000)
-    M = spzeros(100_000, 100_000)
-    M[x,y] = 1
-    return Board(M, x, y, x, y)
-end
-
-function go_home!(board)
-    board.curr_x = board.orig_x
-    board.curr_y = board.orig_y
-    board.M[board.orig_x, board.orig_y] += 1
-end
-
-function flood!(board, ops::Vector{Op}, val::Int)
-    for op ∈ ops
-        x, y, M = board.curr_x, board.curr_y, board.M
+function points(ops::Vector{Op})
+    d = Dict{Tuple{Int,Int}, Int}()
+    x = 0
+    y = 0
+    steps = 0
+    for op in ops
         if op.direction === :U
-            for dy in 1:op.distance
-                if M[x, y+dy] == 0      # marking
-                    M[x, y+dy] = val
-                elseif M[x, y+dy] > 0   # crossing
-                    M[x, y+dy] = 99
-                end
+            for i in 1:op.distance
+                steps += 1
+                d[(x,y+i)] = steps
             end
-            board.curr_y += op.distance
+            y += op.distance
         elseif op.direction === :D
-            for dy in 1:op.distance
-                if M[x, y-dy] == 0      # marking
-                    M[x, y-dy] = val
-                elseif M[x, y-dy] > 0   # crossing
-                    M[x, y-dy] = 99
-                end
+            for i in 1:op.distance
+                steps += 1
+                d[(x,y-i)] = steps
             end
-            board.curr_y -= op.distance
+            y -= op.distance
         elseif op.direction === :L
-            for dx in 1:op.distance
-                if M[x-dx, y] == 0      # marking
-                    M[x-dx, y] = val
-                elseif M[x-dx, y] > 0   # crossing
-                    M[x-dx, y] = 99
-                end
+            for i in 1:op.distance
+                steps += 1
+                d[(x-i,y)] = steps
             end
-            board.curr_x -= op.distance
+            x -= op.distance
         elseif op.direction === :R
-            for dx in 1:op.distance
-                if M[x+dx, y] == 0      # marking
-                    M[x+dx, y] = val
-                elseif M[x+dx, y] > 0   # crossing
-                    M[x+dx, y] = 99
-                end
+            for i in 1:op.distance
+                steps += 1
+                d[(x+i,y)] = steps
             end
-            board.curr_x += op.distance
-        else
-            error("Bad direction: $(op.direction)")
+            x += op.distance
         end
     end
+    return d
 end
 
-function visualize(board)
-    I, J, V = findnz(board.M)
-    scatterplot(I, J)
+closest_point(s1::String, s2::String) = 
+    closest_point(parse_line(s1), parse_line(s2))
+
+function closest_point(ops1::Vector{Op}, ops2::Vector{Op})
+    p1 = points(ops1)
+    p2 = points(ops2)
+    cross = intersect(keys(p1), keys(p2))
+    # @show cross
+    minimum([abs(v[1]) + abs(v[2]) for v in cross])
 end
 
-function flood!(board, ops1, ops2)
-    flood!(board, ops1, 1)
-    go_home!(board)
-    flood!(board, ops2, 2)
-    return board
+shortest_distance(s1::String, s2::String) = 
+    shortest_distance(parse_line(s1), parse_line(s2))
+
+function shortest_distance(ops1::Vector{Op}, ops2::Vector{Op})
+    p1 = points(ops1)
+    p2 = points(ops2)
+    cross = intersect(keys(p1), keys(p2))
+    minimum([p1[k] + p2[k] for k in cross])
 end
 
-function intersection_points(board)
-    I, J, V = findnz(board.M)
-    P = V .== 99
-    return [I[P] J[P]]
-end
+# global variables
+ops1, ops2 = parse_file(joinpath(dirname(@__FILE__), "..", "input.txt"))
 
-function distances(board)
-    ip = intersection_points(board)
-    println(ip)
-    [abs(board.orig_x - v[1]) + abs(board.orig_y - v[2]) for v in eachrow(ip)]
-end
-
-function solve(board)
-    @show sorted_distances = distances(board) |> sort
-    return sorted_distances[2]   # not sure why we need the 2nd one :-(
-end
-
-main(ops1::String, ops2::String) = main(parse_line(ops1), parse_line(ops2))
-
-function main(ops1::Vector{Op}, ops2::Vector{Op})
-    board = make_board()
-    flood!(board, ops1, ops2)
-    @show solve(board)
-    return board
-end
-
-function main()
-    ops1, ops2 = parse_file("input.txt")
-    main(ops1, ops2)
-end
+part1() = closest_point(ops1, ops2)
+part2() = shortest_distance(ops1, ops2)
 
 end # module
