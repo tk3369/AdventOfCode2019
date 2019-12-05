@@ -1,0 +1,9 @@
+name = "Day5"
+uuid = "56b9caa2-e67f-42dd-993a-c26c5bb21ae2"
+authors = ["Tom Kwong <tk3369@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
