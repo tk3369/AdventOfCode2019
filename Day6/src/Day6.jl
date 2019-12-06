@@ -7,8 +7,10 @@ export objects, build_sys, orbits, total_orbits, paths, distance, test_objects, 
 
 # Part 1
 
+"Read file.  Split lines by ) character"
 read_file(filename) = split.(readlines(filename), ")")
 
+"Read a set of objects from the input file."
 objects() = read_file("input.txt")
 
 "Build the orbit system, which is just a dictionary."
