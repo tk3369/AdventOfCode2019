@@ -27,12 +27,14 @@ function run(code, input, output = [], i = 0)
 
     argc = oplen[op]
     if op ∈ (5,6)
-        j = shouldjump(Val(op), Val(opmode), code, code[i+1], code[i+2])
+        j = shouldjump(Val(op), Val(opmode), code, 
+                code[i+1], code[i+2])
         j[1] == :jump ?
             run(code, input, output, j[2]) :
             run(code, input, output, i + argc + 1)
     else
-        execute!(Val(op), Val(opmode), input, output, code, code[i+1:i+argc]...)
+        execute!(Val(op), Val(opmode), input, output, 
+            code, code[i+1:i+argc]...)
         run(code, input, output, i + argc + 1)
     end
 end
